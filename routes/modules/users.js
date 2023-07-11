@@ -1,5 +1,5 @@
 const router = require('express').Router()
-
+const bcrypt = require('bcryptjs')
 const db = require('../../models')
 const Todo = db.Todo
 const User = db.User
@@ -18,8 +18,26 @@ router.get('/register', (req, res) => {
 
 router.post('/register', (req, res) => {
   const { name, email, password, confirmPassword } = req.body
-  User.create({ name, email, password })
-    .then(user => res.redirect('/'))
+  User.findOne({ where: { email } })
+    .then((user) => {
+      if (user) {
+        console.log('This Email already exist.')
+        return res.render('register', { ...req.body })
+      }
+
+      return bcrypt
+        .genSalt(10)
+        .then((salt) => bcrypt.hash(password, salt))
+        .then((hash) => 
+          User.create({
+            name,
+            email,
+            password: hash
+          })
+        )
+        .then(() => res.redirect('/'))
+        .catch((e) => console.log(e))
+    })
 })
 
 router.get('/logout', (req, res) => {
