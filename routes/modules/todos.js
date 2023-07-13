@@ -13,6 +13,14 @@ router.get('/:id', (req, res) => {
     .catch((e) => console.log(e))
 })
 
+router.get('/:id/edit', (req, res) => {
+  const id = req.params.id
+  const UserId = req.user.id
+  return Todo.findOne({ where: { id, UserId } })
+    .then((todo) => res.render('edit', { todo: todo.toJSON() }))
+    .catch((e) => console.log(e))
+})
+
 router.post('/', (req, res) => {
   const name = req.body.name
   const UserId = req.user.id
@@ -21,4 +29,19 @@ router.post('/', (req, res) => {
     .catch((e) => console.log(e))
 })
 
+router.put('/:id', (req, res) => {
+  const { name, isDone } = req.body
+  const id = req.params.id
+  const UserId = req.user.id
+  return Todo.findOne({ where: { id, UserId } })
+    .then((todo) => {
+      todo.name = name
+      todo.isDone = isDone === 'on'
+      return todo.save()
+    })
+    .then(() => res.redirect('/'))
+    .catch((e) => console.log(e))
+})
+
 module.exports = router
+ 
